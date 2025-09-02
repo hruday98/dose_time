@@ -10,8 +10,10 @@ import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_screen.dart';
+import 'features/dashboard/screens/dashboard_screen.dart';
 import 'providers/auth_providers.dart';
 import 'services/local_database_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +26,15 @@ void main() async {
   // Initialize Hive for local storage
   await Hive.initFlutter();
   
-  // Initialize local database service
+  // Initialize Hive local database
   await LocalDatabaseService().initialize();
+  
+  // Initialize notification service
+  try {
+    await NotificationService().initialize();
+  } catch (e) {
+    print('Failed to initialize notifications: $e');
+  }
   
   // Initialize timezone data
   tz.initializeTimeZones();
@@ -79,7 +88,7 @@ class DoseTimeApp extends ConsumerWidget {
         ),
         GoRoute(
           path: AppConstants.dashboardRoute,
-          builder: (context, state) => const DashboardPlaceholder(),
+          builder: (context, state) => const DashboardScreen(),
         ),
         // Add other routes here as we implement them
       ],
