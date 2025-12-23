@@ -34,6 +34,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     
     ref.listen<AuthState>(authStateProvider, (previous, next) {
       switch (next) {
+        case AuthStateInitial():
+          break;
         case AuthStateAuthenticated():
           context.go(AppConstants.dashboardRoute);
         case AuthStateError(:final message):

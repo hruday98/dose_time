@@ -1,236 +1,233 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
-import '../core/models/user_model.dart';
-import '../core/constants/app_constants.dart';
-import 'firestore_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import './django_api_service.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirestoreService _firestoreService = FirestoreService();
-  final Logger _logger = Logger();
+  final DjangoApiService apiService;
+  final Logger logger;
+  final SharedPreferences prefs;
 
-  User? get currentUser => _auth.currentUser;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  AuthService({
+    required this.apiService,
+    required this.logger,
+    required this.prefs,
+  });
 
-  // Email & Password Authentication
-  Future<UserCredential?> signUpWithEmailAndPassword({
+  static const String _accessTokenKey = 'django_access_token';
+  static const String _refreshTokenKey = 'django_refresh_token';
+  static const String _userIdKey = 'django_user_id';
+  static const String _userEmailKey = 'django_user_email';
+  static const String _userRoleKey = 'django_user_role';
+
+  // ==================== AUTHENTICATION ====================
+
+  /// Register a new user
+  Future<Map<String, dynamic>> register({
+    required String username,
     required String email,
     required String password,
-    required String displayName,
-    required UserRole role,
+    required String role,
     String? phoneNumber,
   }) async {
     try {
-      final userCredential = await _auth.createUserWithEmailAndPassword(
+      final response = await apiService.registerUser(
+        username: username,
         email: email,
         password: password,
+        role: role,
+        phoneNumber: phoneNumber,
       );
-
-      if (userCredential.user != null) {
-        // Update display name
-        await userCredential.user!.updateDisplayName(displayName);
-
-        // Create user document in Firestore
-        final userModel = UserModel(
-          id: userCredential.user!.uid,
-          email: email,
-          displayName: displayName,
-          role: role,
-          phoneNumber: phoneNumber,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-
-        await _firestoreService.createUser(userModel);
-        _logger.i('User created successfully: ${userCredential.user!.uid}');
-      }
-
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      _logger.e('Sign up error: ${e.message}');
-      throw _handleAuthException(e);
+      logger.i('User registered: $username');
+      return response;
     } catch (e) {
-      _logger.e('Unexpected sign up error: $e');
-      throw 'An unexpected error occurred. Please try again.';
+      logger.e('Registration failed: $e');
+      rethrow;
     }
   }
 
-  Future<UserCredential?> signInWithEmailAndPassword({
-    required String email,
+  /// Login user with email and password
+  Future<bool> login({
+    required String username,
     required String password,
   }) async {
     try {
-      final userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
+      final response = await apiService.loginUser(
+        username: username,
         password: password,
       );
-      
-      _logger.i('User signed in successfully: ${userCredential.user!.uid}');
-      return userCredential;
-    } on FirebaseAuthException catch (e) {
-      _logger.e('Sign in error: ${e.message}');
-      throw _handleAuthException(e);
+
+      final accessToken = response['access'] as String?;
+      final refreshToken = response['refresh'] as String?;
+
+      if (accessToken != null && refreshToken != null) {
+        // Store tokens
+        await prefs.setString(_accessTokenKey, accessToken);
+        await prefs.setString(_refreshTokenKey, refreshToken);
+
+        // Fetch and store user data
+        final user = await apiService.getCurrentUser();
+        await _storeUserData(user);
+
+        logger.i('User logged in: $username');
+        return true;
+      }
+      return false;
     } catch (e) {
-      _logger.e('Unexpected sign in error: $e');
-      throw 'An unexpected error occurred. Please try again.';
+      logger.e('Login failed: $e');
+      rethrow;
     }
   }
 
-  // Google Sign In
-  Future<UserCredential?> signInWithGoogle() async {
+  /// Logout current user
+  Future<void> logout() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return null; // User cancelled the sign-in
-      }
+      await prefs.remove(_accessTokenKey);
+      await prefs.remove(_refreshTokenKey);
+      await prefs.remove(_userIdKey);
+      await prefs.remove(_userEmailKey);
+      await prefs.remove(_userRoleKey);
+      logger.i('User logged out');
+    } catch (e) {
+      logger.e('Logout failed: $e');
+      rethrow;
+    }
+  }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+  /// Refresh access token
+  Future<bool> refreshAccessToken() async {
+    try {
+      final refreshToken = getRefreshToken();
+      if (refreshToken == null) return false;
+
+      final response = await apiService.refreshToken(refreshToken: refreshToken);
+      final newAccessToken = response['access'] as String?;
+
+      if (newAccessToken != null) {
+        await prefs.setString(_accessTokenKey, newAccessToken);
+        logger.i('Access token refreshed');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      logger.e('Token refresh failed: $e');
+      return false;
+    }
+  }
+
+  // ==================== TOKEN MANAGEMENT ====================
+
+  /// Get stored access token
+  String? getAccessToken() {
+    return prefs.getString(_accessTokenKey);
+  }
+
+  /// Get stored refresh token
+  String? getRefreshToken() {
+    return prefs.getString(_refreshTokenKey);
+  }
+
+  /// Check if user is authenticated
+  bool isAuthenticated() {
+    return getAccessToken() != null;
+  }
+
+  // ==================== USER DATA ====================
+
+  /// Get current user ID
+  String? getCurrentUserId() {
+    return prefs.getString(_userIdKey);
+  }
+
+  /// Get current user email
+  String? getCurrentUserEmail() {
+    return prefs.getString(_userEmailKey);
+  }
+
+  /// Get current user role
+  String? getCurrentUserRole() {
+    return prefs.getString(_userRoleKey);
+  }
+
+  /// Get current user data
+  Future<Map<String, dynamic>?> getCurrentUserData() async {
+    try {
+      final user = await apiService.getCurrentUser();
+      await _storeUserData(user);
+      return user;
+    } catch (e) {
+      logger.e('Failed to get current user: $e');
+      return null;
+    }
+  }
+
+  /// Update user profile
+  Future<bool> updateProfile({
+    String? email,
+    String? phoneNumber,
+    String? profileImage,
+  }) async {
+    try {
+      final userId = getCurrentUserId();
+      if (userId == null) return false;
+
+      final response = await apiService.updateUserProfile(
+        userId: userId,
+        email: email,
+        phoneNumber: phoneNumber,
+        profileImage: profileImage,
       );
 
-      final userCredential = await _auth.signInWithCredential(credential);
-      
-      // Check if this is a new user and create profile if needed
-      if (userCredential.additionalUserInfo?.isNewUser == true) {
-        final userModel = UserModel(
-          id: userCredential.user!.uid,
-          email: userCredential.user!.email!,
-          displayName: userCredential.user!.displayName ?? 'User',
-          role: UserRole.patient, // Default role, user can change later
-          profileImageUrl: userCredential.user!.photoURL,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        await _firestoreService.createUser(userModel);
-      }
-
-      _logger.i('Google sign in successful: ${userCredential.user!.uid}');
-      return userCredential;
+      await _storeUserData(response);
+      logger.i('User profile updated');
+      return true;
     } catch (e) {
-      _logger.e('Google sign in error: $e');
-      throw 'Failed to sign in with Google. Please try again.';
+      logger.e('Profile update failed: $e');
+      return false;
     }
   }
 
-  // Apple Sign In
-  Future<UserCredential?> signInWithApple() async {
-    try {
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
+  // ==================== PRIVATE HELPERS ====================
 
-      final oauthCredential = OAuthProvider("apple.com").credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
-
-      final userCredential = await _auth.signInWithCredential(oauthCredential);
-      
-      // Check if this is a new user and create profile if needed
-      if (userCredential.additionalUserInfo?.isNewUser == true) {
-        final displayName = appleCredential.givenName != null && appleCredential.familyName != null
-            ? '${appleCredential.givenName} ${appleCredential.familyName}'
-            : 'User';
-            
-        final userModel = UserModel(
-          id: userCredential.user!.uid,
-          email: userCredential.user!.email ?? appleCredential.email ?? '',
-          displayName: displayName,
-          role: UserRole.patient, // Default role, user can change later
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        await _firestoreService.createUser(userModel);
-      }
-
-      _logger.i('Apple sign in successful: ${userCredential.user!.uid}');
-      return userCredential;
-    } catch (e) {
-      _logger.e('Apple sign in error: $e');
-      throw 'Failed to sign in with Apple. Please try again.';
+  /// Store user data locally
+  Future<void> _storeUserData(Map<String, dynamic> user) async {
+    await prefs.setString(_userIdKey, user['id'].toString());
+    if (user['email'] != null) {
+      await prefs.setString(_userEmailKey, user['email']);
     }
-  }
-
-  // Password Reset
-  Future<void> sendPasswordResetEmail(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-      _logger.i('Password reset email sent to: $email');
-    } on FirebaseAuthException catch (e) {
-      _logger.e('Password reset error: ${e.message}');
-      throw _handleAuthException(e);
-    } catch (e) {
-      _logger.e('Unexpected password reset error: $e');
-      throw 'Failed to send password reset email. Please try again.';
-    }
-  }
-
-  // Sign Out
-  Future<void> signOut() async {
-    try {
-      await Future.wait([
-        _auth.signOut(),
-        _googleSignIn.signOut(),
-      ]);
-      _logger.i('User signed out successfully');
-    } catch (e) {
-      _logger.e('Sign out error: $e');
-      throw 'Failed to sign out. Please try again.';
-    }
-  }
-
-  // Delete Account
-  Future<void> deleteAccount() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        // Delete user data from Firestore
-        await _firestoreService.deleteUser(user.uid);
-        
-        // Delete Firebase Auth account
-        await user.delete();
-        _logger.i('Account deleted successfully');
-      }
-    } on FirebaseAuthException catch (e) {
-      _logger.e('Delete account error: ${e.message}');
-      throw _handleAuthException(e);
-    } catch (e) {
-      _logger.e('Unexpected delete account error: $e');
-      throw 'Failed to delete account. Please try again.';
-    }
-  }
-
-  // Helper method to handle Firebase Auth exceptions
-  String _handleAuthException(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'user-not-found':
-        return 'No user found with this email address.';
-      case 'wrong-password':
-        return 'Wrong password provided.';
-      case 'email-already-in-use':
-        return 'An account already exists with this email address.';
-      case 'weak-password':
-        return 'The password provided is too weak.';
-      case 'invalid-email':
-        return 'The email address is not valid.';
-      case 'operation-not-allowed':
-        return 'This sign-in method is not enabled.';
-      case 'user-disabled':
-        return 'This user account has been disabled.';
-      case 'too-many-requests':
-        return 'Too many unsuccessful attempts. Please try again later.';
-      case 'requires-recent-login':
-        return 'This operation requires recent authentication. Please sign in again.';
-      default:
-        return e.message ?? 'An authentication error occurred.';
+    if (user['role'] != null) {
+      await prefs.setString(_userRoleKey, user['role']);
     }
   }
 }
+
+/// Provider for SharedPreferences
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>(
+  (ref) async => SharedPreferences.getInstance(),
+);
+
+/// Provider for AuthService
+final authServiceProvider = FutureProvider<AuthService>((ref) async {
+  final prefs = await ref.watch(sharedPreferencesProvider.future);
+  final apiService = ref.watch(djangoApiServiceProvider);
+  final logger = ref.watch(loggerProvider);
+
+  return AuthService(
+    apiService: apiService,
+    logger: logger,
+    prefs: prefs,
+  );
+});
+
+/// Provider for checking if user is authenticated
+final isAuthenticatedProvider = FutureProvider<bool>((ref) async {
+  final authService = await ref.watch(authServiceProvider.future);
+  return authService.isAuthenticated();
+});
+
+/// Provider for current user data
+final currentUserProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
+  final authService = await ref.watch(authServiceProvider.future);
+  return authService.getCurrentUserData();
+});
+

@@ -245,6 +245,3 @@ enum MedicationStatus {
     }
   }
 }
-
-@HiveType(typeId: 5)
-
