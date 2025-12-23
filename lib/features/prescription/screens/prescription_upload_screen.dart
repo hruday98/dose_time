@@ -140,7 +140,7 @@ class _PrescriptionUploadScreenState extends ConsumerState<PrescriptionUploadScr
                         Text(
                           'Extracted ${ocrState.extractedText.length} characters',
                           style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.onSurface.withOpacity(0.7),
+                            color: AppColors.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
                         if (ocrState.parsedPrescription != null)
@@ -165,7 +165,7 @@ class _PrescriptionUploadScreenState extends ConsumerState<PrescriptionUploadScr
               Text(
                 'Take a photo or select from gallery to automatically extract prescription information.',
                 style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: AppSizes.spacingMedium),
@@ -220,7 +220,7 @@ class _PrescriptionUploadScreenState extends ConsumerState<PrescriptionUploadScr
               decoration: BoxDecoration(
                 color: AppColors.surfaceVariant,
                 borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-                border: Border.all(color: AppColors.outline.withOpacity(0.5)),
+                border: Border.all(color: AppColors.outline.withValues(alpha: 0.5)),
               ),
               child: Text(
                 ocrState.extractedText,
@@ -607,3 +607,4 @@ class _PrescriptionUploadScreenState extends ConsumerState<PrescriptionUploadScr
     }
   }
 }
+

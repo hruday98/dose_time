@@ -1,3 +1,5 @@
+import 'package:hive/hive.dart';
+
 class AppConstants {
   // App Info
   static const String appName = 'DoseTime';
@@ -74,6 +76,7 @@ enum UserRole {
   }
 }
 
+@HiveType(typeId: 5)
 enum MedicationType {
   tablet,
   capsule,
@@ -106,6 +109,7 @@ enum MedicationType {
   }
 }
 
+@HiveType(typeId: 6)
 enum DosageFrequency {
   onceDaily,
   twiceDaily,

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/models/prescription_model.dart';
 import '../../../core/utils/utils.dart';
-import '../../../core/widgets/custom_widgets.dart';
 import '../../../providers/dashboard_providers.dart';
 
 class MedicationTimeline extends ConsumerWidget {
@@ -50,7 +49,7 @@ class MedicationTimelineItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final medicationAction = ref.watch(medicationActionProvider);
     final statusColor = ColorUtils.getMedicationStatusColor(log.status.name);
-    final scheduledTime = log.scheduledTime.toDate();
+    final scheduledTime = log.scheduledTime;
     final isOverdue = log.isOverdue;
 
     return IntrinsicHeight(
@@ -67,7 +66,7 @@ class MedicationTimelineItem extends ConsumerWidget {
                   color: statusColor,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: statusColor.withOpacity(0.3),
+                    color: statusColor.withValues(alpha: 0.3),
                     width: 2,
                   ),
                 ),
@@ -138,9 +137,9 @@ class MedicationTimelineItem extends ConsumerWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
+                              color: statusColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
-                              border: Border.all(color: statusColor.withOpacity(0.3)),
+                              border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               log.status.displayName,
@@ -290,3 +289,4 @@ class MedicationTimelineItem extends ConsumerWidget {
     ref.read(medicationActionProvider.notifier).snoozeMedication(log, AppConstants.snoozeMinutes);
   }
 }
+

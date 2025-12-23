@@ -7,7 +7,6 @@ import '../core/constants/app_constants.dart';
 import '../services/firestore_service.dart';
 import '../services/local_database_service.dart';
 import '../services/ocr_service.dart';
-import 'auth_providers.dart';
 import 'notification_providers.dart';
 
 // OCR Service Provider

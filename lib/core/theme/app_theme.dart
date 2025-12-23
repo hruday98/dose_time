@@ -22,7 +22,6 @@ class AppTheme {
         seedColor: primaryColor,
         brightness: Brightness.light,
         surface: lightSurface,
-        background: lightBackground,
       ),
       
       // Typography optimized for elderly users
@@ -42,7 +41,7 @@ class AppTheme {
       ),
       
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
@@ -109,7 +108,6 @@ class AppTheme {
         seedColor: primaryColor,
         brightness: Brightness.dark,
         surface: darkSurface,
-        background: darkBackground,
       ),
       
       // Typography optimized for elderly users
@@ -129,7 +127,7 @@ class AppTheme {
       ),
       
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         color: darkSurface,
         shape: RoundedRectangleBorder(
@@ -193,7 +191,7 @@ class AppTheme {
   static TextTheme _buildTextTheme(Brightness brightness) {
     final Color textColor = brightness == Brightness.light 
         ? Colors.black87 
-        : Colors.white87;
+        : Colors.white.withValues(alpha: 0.87);
     
     return TextTheme(
       // Headings
@@ -276,3 +274,80 @@ class MedicationColors {
   static const Color overdue = Color(0xFFFF9800);
   static const Color skipped = Color(0xFF9E9E9E);
 }
+
+// Color constants
+class AppColors {
+  static const Color primary = AppTheme.primaryColor;
+  static const Color secondary = AppTheme.secondaryColor;
+  static const Color error = AppTheme.errorColor;
+  static const Color warning = AppTheme.warningColor;
+  static const Color success = AppTheme.successColor;
+  static const Color surface = AppTheme.lightSurface;
+  static const Color background = AppTheme.lightBackground;
+  static const Color onSurface = Colors.black87;
+}
+
+// Size constants
+class AppSizes {
+  static const double iconSmall = 16.0;
+  static const double iconMedium = 24.0;
+  static const double iconLarge = 32.0;
+  static const double spacingSmall = 8.0;
+  static const double spacingMedium = 16.0;
+  static const double spacingLarge = 24.0;
+  static const double paddingSmall = 8.0;
+  static const double paddingMedium = 16.0;
+  static const double paddingLarge = 24.0;
+}
+
+// Text style constants
+class AppTextStyles {
+  static const TextStyle headlineLarge = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.w700,
+    color: Colors.black87,
+  );
+  
+  static const TextStyle headlineMedium = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    color: Colors.black87,
+  );
+  
+  static const TextStyle headlineSmall = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: Colors.black87,
+  );
+  
+  static const TextStyle bodyLarge = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    color: Colors.black87,
+  );
+  
+  static const TextStyle bodyMedium = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    color: Colors.black87,
+  );
+  
+  static const TextStyle bodySmall = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    color: Colors.black87,
+  );
+  
+  static const TextStyle labelLarge = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: Colors.black87,
+  );
+  
+  static const TextStyle labelMedium = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: Colors.black87,
+  );
+}
+

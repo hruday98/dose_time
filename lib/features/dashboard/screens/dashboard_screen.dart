@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/custom_widgets.dart';
+import '../../../core/widgets/custom_widgets.dart' hide ErrorWidget;
+import '../../../core/widgets/error_widget.dart' as app_error;
 import '../../../core/utils/utils.dart';
 import '../../../providers/dashboard_providers.dart';
 import '../../../providers/auth_providers.dart';
@@ -86,7 +87,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 todaysLogs.when(
                   data: (logs) => _buildMedicationTimeline(logs),
                   loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => ErrorWidget(
+                  error: (error, stack) => app_error.ErrorWidget(
                     message: 'Failed to load today\'s medications',
                     onRetry: () => ref.refresh(todaysMedicationLogsProvider),
                   ),
@@ -114,7 +115,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           gradient: LinearGradient(
             colors: [
               AppTheme.primaryColor,
-              AppTheme.primaryColor.withOpacity(0.8),
+              AppTheme.primaryColor.withValues(alpha: 0.8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -362,3 +363,4 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 }
+

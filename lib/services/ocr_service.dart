@@ -262,3 +262,4 @@ class ParsedPrescription {
     return 'ParsedPrescription(name: $medicationName, dosage: $dosage, type: ${type.displayName}, frequency: ${frequency.displayName})';
   }
 }
+

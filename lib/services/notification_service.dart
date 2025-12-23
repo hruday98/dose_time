@@ -261,23 +261,23 @@ class NotificationService {
 
   /// Create notification details
   NotificationDetails _createNotificationDetails(PrescriptionModel prescription) {
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       'medication_reminders',
       'Medication Reminders',
       channelDescription: 'Notifications for medication reminders',
       importance: Importance.high,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
-      sound: RawResourceAndroidNotificationSound('medication_reminder'),
+      sound: const RawResourceAndroidNotificationSound('medication_reminder'),
       enableVibration: true,
       vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
       actions: [
-        AndroidNotificationAction(
+        const AndroidNotificationAction(
           'mark_taken',
           'Mark as Taken',
           showsUserInterface: true,
         ),
-        AndroidNotificationAction(
+        const AndroidNotificationAction(
           'skip_dose',
           'Skip This Dose',
           showsUserInterface: true,
@@ -290,7 +290,7 @@ class NotificationService {
       interruptionLevel: InterruptionLevel.active,
     );
 
-    return const NotificationDetails(
+    return NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -385,7 +385,7 @@ class NotificationService {
 
     await showImmediateNotification(
       title: '⚠️ Overdue Medication',
-      body: '${prescription.medicationName} was due at ${DateTimeUtils.formatTime(overdueLog.scheduledDateTime)}',
+      body: '${prescription.medicationName} was due at ${DateTimeUtils.timeOnly(overdueLog.takenAt)}',
       payload: payload,
     );
   }

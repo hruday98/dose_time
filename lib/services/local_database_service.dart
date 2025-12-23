@@ -2,6 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
 import '../core/models/user_model.dart';
 import '../core/models/prescription_model.dart';
+import '../core/models/medication_log_model.dart';
 import '../core/constants/app_constants.dart';
 
 class LocalDatabaseService {
@@ -14,7 +15,7 @@ class LocalDatabaseService {
   // Lazy-loaded boxes
   Box<UserModel>? _userBox;
   Box<PrescriptionModel>? _prescriptionsBox;
-  Box<MedicationLog>? _medicationLogsBox;
+  Box<MedicationLogModel>? _medicationLogsBox;
   Box<Map<dynamic, dynamic>>? _settingsBox;
 
   // Initialize Hive and register adapters
@@ -43,24 +44,12 @@ class LocalDatabaseService {
     if (!Hive.isAdapterRegistered(2)) {
       Hive.registerAdapter(MedicationLogAdapter());
     }
-    if (!Hive.isAdapterRegistered(3)) {
-      Hive.registerAdapter(MedicationStatusAdapter());
-    }
-    if (!Hive.isAdapterRegistered(4)) {
-      Hive.registerAdapter(UserRoleAdapter());
-    }
-    if (!Hive.isAdapterRegistered(5)) {
-      Hive.registerAdapter(MedicationTypeAdapter());
-    }
-    if (!Hive.isAdapterRegistered(6)) {
-      Hive.registerAdapter(DosageFrequencyAdapter());
-    }
   }
 
   Future<void> _openBoxes() async {
     _userBox = await Hive.openBox<UserModel>(AppConstants.userBoxName);
     _prescriptionsBox = await Hive.openBox<PrescriptionModel>(AppConstants.prescriptionsBoxName);
-    _medicationLogsBox = await Hive.openBox<MedicationLog>(AppConstants.medicationLogsBoxName);
+    _medicationLogsBox = await Hive.openBox<MedicationLogModel>(AppConstants.medicationLogsBoxName);
     _settingsBox = await Hive.openBox<Map<dynamic, dynamic>>(AppConstants.settingsBoxName);
   }
 
@@ -150,7 +139,7 @@ class LocalDatabaseService {
   }
 
   // Medication log operations
-  Future<void> saveMedicationLog(MedicationLog log) async {
+  Future<void> saveMedicationLog(MedicationLogModel log) async {
     try {
       await _medicationLogsBox!.put(log.id, log);
       _logger.i('Medication log saved to local database: ${log.id}');
@@ -160,9 +149,9 @@ class LocalDatabaseService {
     }
   }
 
-  Future<void> saveMedicationLogs(List<MedicationLog> logs) async {
+  Future<void> saveMedicationLogs(List<MedicationLogModel> logs) async {
     try {
-      final Map<String, MedicationLog> logMap = {
+      final Map<String, MedicationLogModel> logMap = {
         for (final log in logs) log.id: log
       };
       await _medicationLogsBox!.putAll(logMap);
@@ -173,7 +162,7 @@ class LocalDatabaseService {
     }
   }
 
-  List<MedicationLog> getMedicationLogs({
+  List<MedicationLogModel> getMedicationLogs({
     required String patientId,
     DateTime? startDate,
     DateTime? endDate,
@@ -183,24 +172,24 @@ class LocalDatabaseService {
           .where((log) => log.patientId == patientId);
 
       if (startDate != null) {
-        logs = logs.where((log) => log.scheduledTime.isAfter(startDate) || 
-                                   log.scheduledTime.isAtSameMomentAs(startDate));
+        logs = logs.where((log) => log.takenAt.isAfter(startDate) || 
+                                   log.takenAt.isAtSameMomentAs(startDate));
       }
 
       if (endDate != null) {
-        logs = logs.where((log) => log.scheduledTime.isBefore(endDate) || 
-                                   log.scheduledTime.isAtSameMomentAs(endDate));
+        logs = logs.where((log) => log.takenAt.isBefore(endDate) || 
+                                   log.takenAt.isAtSameMomentAs(endDate));
       }
 
       return logs.toList()
-        ..sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
+        ..sort((a, b) => b.takenAt.compareTo(a.takenAt));
     } catch (e) {
       _logger.e('Error getting medication logs from local database: $e');
       return [];
     }
   }
 
-  List<MedicationLog> getTodaysMedicationLogs(String patientId) {
+  List<MedicationLogModel> getTodaysMedicationLogs(String patientId) {
     final today = DateTime.now();
     final startOfDay = DateTime(today.year, today.month, today.day);
     final endOfDay = DateTime(today.year, today.month, today.day, 23, 59, 59);
@@ -212,7 +201,7 @@ class LocalDatabaseService {
     );
   }
 
-  MedicationLog? getMedicationLog(String logId) {
+  MedicationLogModel? getMedicationLog(String logId) {
     try {
       return _medicationLogsBox!.get(logId);
     } catch (e) {
@@ -329,28 +318,4 @@ class LocalDatabaseService {
       return [];
     }
   }
-}
-
-// Extension methods for UserRole enum
-extension UserRoleAdapter on UserRole {
-  static UserRoleAdapter get adapter => UserRoleAdapter._();
-  UserRoleAdapter._();
-}
-
-// Extension methods for MedicationType enum
-extension MedicationTypeAdapter on MedicationType {
-  static MedicationTypeAdapter get adapter => MedicationTypeAdapter._();
-  MedicationTypeAdapter._();
-}
-
-// Extension methods for DosageFrequency enum
-extension DosageFrequencyAdapter on DosageFrequency {
-  static DosageFrequencyAdapter get adapter => DosageFrequencyAdapter._();
-  DosageFrequencyAdapter._();
-}
-
-// Extension methods for MedicationStatus enum
-extension MedicationStatusAdapter on MedicationStatus {
-  static MedicationStatusAdapter get adapter => MedicationStatusAdapter._();
-  MedicationStatusAdapter._();
 }

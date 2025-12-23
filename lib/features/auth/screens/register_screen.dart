@@ -169,10 +169,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Container(
                       padding: const EdgeInsets.all(AppConstants.paddingMedium),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppConstants.borderRadiusMedium),
                         border: Border.all(
-                          color: AppTheme.primaryColor.withOpacity(0.2),
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Column(
@@ -284,3 +284,4 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 }
+

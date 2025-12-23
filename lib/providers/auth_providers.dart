@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/models/user_model.dart';
+import '../core/constants/app_constants.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 

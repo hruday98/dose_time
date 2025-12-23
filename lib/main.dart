@@ -33,7 +33,7 @@ void main() async {
   try {
     await NotificationService().initialize();
   } catch (e) {
-    print('Failed to initialize notifications: $e');
+    debugPrint('Failed to initialize notifications: $e');
   }
   
   // Initialize timezone data

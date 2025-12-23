@@ -97,3 +97,4 @@ class UserModel {
   
   String get roleString => role.name;
 }
+

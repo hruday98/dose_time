@@ -177,9 +177,9 @@ class MedicationCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
+                      color: statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
-                      border: Border.all(color: statusColor.withOpacity(0.3)),
+                      border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       StringUtils.capitalize(status),
@@ -245,7 +245,7 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             child: Center(
               child: Card(
                 child: Padding(
@@ -426,7 +426,7 @@ class LargeTimePicker extends StatelessWidget {
             builder: (context, child) {
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
-                  textScaleFactor: 1.2, // Larger text for elderly users
+                  textScaler: TextScaler.linear(1.2), // Larger text for elderly users
                 ),
                 child: child!,
               );
@@ -473,7 +473,7 @@ class RoleSelector extends StatelessWidget {
               onPressed: () => onRoleChanged(role),
               style: OutlinedButton.styleFrom(
                 backgroundColor: selectedRole == role 
-                    ? AppTheme.primaryColor.withOpacity(0.1)
+                    ? AppTheme.primaryColor.withValues(alpha: 0.1)
                     : null,
                 side: BorderSide(
                   color: selectedRole == role 
@@ -577,7 +577,7 @@ class QuickActionTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppConstants.paddingSmall),
                 decoration: BoxDecoration(
-                  color: (iconColor ?? AppTheme.primaryColor).withOpacity(0.1),
+                  color: (iconColor ?? AppTheme.primaryColor).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
                 ),
                 child: Icon(
@@ -663,3 +663,4 @@ class NotificationBadge extends StatelessWidget {
     );
   }
 }
+

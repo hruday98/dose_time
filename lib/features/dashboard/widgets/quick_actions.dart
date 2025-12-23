@@ -86,7 +86,7 @@ class _QuickActionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(AppConstants.paddingSmall),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppConstants.borderRadiusSmall),
                 ),
                 child: Icon(
@@ -119,3 +119,4 @@ class _QuickActionCard extends StatelessWidget {
     );
   }
 }
+

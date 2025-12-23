@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/models/prescription_model.dart';
-import '../core/models/user_model.dart';
+import '../core/models/medication_log_model.dart';
 import '../services/firestore_service.dart';
 import '../services/local_database_service.dart';
 import 'auth_providers.dart';
@@ -57,7 +57,7 @@ final upcomingMedicationsProvider = Provider<List<MedicationLog>>((ref) {
   return todaysLogs
       .where((log) => 
           log.status == MedicationStatus.upcoming &&
-          log.scheduledTime.toDate().isAfter(now))
+          log.scheduledTime.isAfter(now))
       .toList()
     ..sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
 });
@@ -85,13 +85,13 @@ class MedicationActionNotifier extends StateNotifier<AsyncValue<void>> {
   FirestoreService get _firestoreService => _ref.read(firestoreServiceProvider);
   LocalDatabaseService get _localDbService => LocalDatabaseService();
 
-  Future<void> markMedicationTaken(MedicationLog log, {String? notes}) async {
+  Future<void> markMedicationTaken(MedicationLogModel log, {String? notes}) async {
     state = const AsyncValue.loading();
     
     try {
       final updatedLog = log.copyWith(
-        status: MedicationStatus.taken,
-        takenTime: DateTime.now(),
+        isTaken: true,
+        takenAt: DateTime.now(),
         notes: notes,
         updatedAt: DateTime.now(),
       );
@@ -108,12 +108,12 @@ class MedicationActionNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> skipMedication(MedicationLog log, {String? reason}) async {
+  Future<void> skipMedication(MedicationLogModel log, {String? reason}) async {
     state = const AsyncValue.loading();
     
     try {
       final updatedLog = log.copyWith(
-        status: MedicationStatus.skipped,
+        isTaken: false,
         notes: reason,
         updatedAt: DateTime.now(),
       );
@@ -130,13 +130,13 @@ class MedicationActionNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> snoozeMedication(MedicationLog log, int minutes) async {
+  Future<void> snoozeMedication(MedicationLogModel log, int minutes) async {
     state = const AsyncValue.loading();
     
     try {
-      final snoozeTime = log.scheduledTime.toDate().add(Duration(minutes: minutes));
+      final snoozeTime = log.takenAt.add(Duration(minutes: minutes));
       final updatedLog = log.copyWith(
-        scheduledTime: snoozeTime,
+        takenAt: snoozeTime,
         updatedAt: DateTime.now(),
       );
 

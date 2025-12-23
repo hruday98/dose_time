@@ -383,7 +383,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       children: [
         Expanded(
           child: ElderlyButton(
-            text: 'Cancel',
+            label: 'Cancel',
             onPressed: _cancelEditing,
             variant: ElderlyButtonVariant.secondary,
           ),
@@ -391,7 +391,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         const SizedBox(width: AppSizes.spacingMedium),
         Expanded(
           child: ElderlyButton(
-            text: 'Save Changes',
+            label: 'Save Changes',
             icon: Icons.save,
             onPressed: _saveProfile,
             variant: ElderlyButtonVariant.primary,

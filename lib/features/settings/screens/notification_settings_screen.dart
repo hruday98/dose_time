@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/elderly_button.dart';
 import '../../../core/widgets/elderly_time_picker.dart';
@@ -76,15 +75,14 @@ class NotificationSettingsScreen extends ConsumerWidget {
               subtitle: Text(
                 _getPermissionSubtitle(permissionState),
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               trailing: permissionState is NotificationPermissionDenied
                   ? ElderlyButton(
-                      text: 'Grant Permission',
+                      label: 'Grant Permission',
                       onPressed: () => _requestPermission(context, ref),
                       variant: ElderlyButtonVariant.primary,
-                      isCompact: true,
                     )
                   : null,
             ),
@@ -116,7 +114,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               subtitle: Text(
                 'Get notified when it\'s time to take your medication',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               value: settings.medicationRemindersEnabled,
@@ -135,7 +133,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               subtitle: Text(
                 'Get notified about missed medications',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               value: settings.overdueRemindersEnabled,
@@ -173,7 +171,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               subtitle: Text(
                 'Play sound when notifications arrive',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               value: settings.soundEnabled,
@@ -192,7 +190,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               subtitle: Text(
                 'Vibrate device when notifications arrive',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               value: settings.vibrationEnabled,
@@ -211,7 +209,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               subtitle: Text(
                 'Remind me ${settings.reminderAdvanceTimeMinutes} minutes before scheduled time',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               trailing: DropdownButton<int>(
@@ -262,7 +260,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
               subtitle: Text(
                 'Reduce notification sounds during specified hours',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               value: settings.quietHoursEnabled,
@@ -280,7 +278,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   Expanded(
                     child: ElderlyTimePicker(
                       label: 'Start Time',
-                      time: settings.quietHoursStart,
+                      initialTime: settings.quietHoursStart,
                       onTimeChanged: (time) => ref.read(notificationSettingsProvider.notifier)
                           .updateQuietHoursStart(time),
                     ),
@@ -289,7 +287,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   Expanded(
                     child: ElderlyTimePicker(
                       label: 'End Time',
-                      time: settings.quietHoursEnd,
+                      initialTime: settings.quietHoursEnd,
                       onTimeChanged: (time) => ref.read(notificationSettingsProvider.notifier)
                           .updateQuietHoursEnd(time),
                     ),
@@ -330,16 +328,15 @@ class NotificationSettingsScreen extends ConsumerWidget {
                   error: (_, __) => 'Error loading count',
                 ),
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               trailing: pendingCount.when(
                 data: (count) => count > 0 
                     ? ElderlyButton(
-                        text: 'Clear All',
+                        label: 'Clear All',
                         onPressed: () => _clearAllNotifications(context, ref),
                         variant: ElderlyButtonVariant.secondary,
-                        isCompact: true,
                       )
                     : null,
                 loading: () => const SizedBox(
@@ -379,14 +376,13 @@ class NotificationSettingsScreen extends ConsumerWidget {
               subtitle: Text(
                 'Test your notification settings',
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.onSurface.withOpacity(0.7),
+                  color: AppColors.onSurface.withValues(alpha: 0.7),
                 ),
               ),
               trailing: ElderlyButton(
-                text: 'Test',
+                label: 'Test',
                 onPressed: () => _sendTestNotification(context, ref),
                 variant: ElderlyButtonVariant.primary,
-                isCompact: true,
               ),
             ),
           ],
@@ -506,3 +502,4 @@ class NotificationSettingsScreen extends ConsumerWidget {
     }
   }
 }
+
